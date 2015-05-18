@@ -64,7 +64,7 @@ class Backtrack2:
                 self.a[i][j] = (1, (inext, j))
                 return
             inext += 1
-        # When we didn't find suitable action, we pass. Backtrack follows.
+        # When we didn't find suitable action, we make unsuitable move. Backtrack follows.
         self.a[i][j] = (2, (j + 1, j))
 
     def step2(self, i, j):
@@ -82,14 +82,16 @@ class Backtrack2:
                 self.a[i][j] = (2, (i, jnext))
                 return
             jnext += 1
-        # When we didn't find suitable action, we pass. Backtrack follows.
+        # When we didn't find suitable action, we make unsuitable move. Backtrack follows.
         self.a[i][j] = (1, (i, i + 1))
 
     def print(self):
         print('█ - player 1 wins\n░ - player 2 wins\n▒ - unreachable\n')
         self.print_matrix()
-        print('Backtrack:')
-        i, j = 0, 0
+        self.print_backtrack(0, 0)
+
+    def print_backtrack(self, i, j):
+        print('Backtrack for ({},{}):'.format(i, j))
         while self.a[i][j][1] is not None:
             _, (inext, jnext) = self.a[i][j]
             print('({},{})'.format(inext, jnext))
@@ -115,10 +117,17 @@ class Backtrack3:
     Backtrack dynamic algorithm for Shubik's 3-player dollar auction.
     """
     def __init__(self, b1=20, b2=20, b3=20, s=6):
+        # Bankrolls
         self.b1 = b1
         self.b2 = b2
         self.b3 = b3
+        # 2-player games
+        self.g12 = Backtrack2(b1=b1, b2=b2, s=s).backtrack()
+        self.g13 = Backtrack2(b1=b1, b2=b3, s=s).backtrack()
+        self.g23 = Backtrack2(b1=b2, b2=b3, s=s).backtrack()
+        # Stake
         self.s = s
+        # Soon-to-be matrix
         self.a = None
 
     def backtrack(self):
@@ -186,7 +195,8 @@ class Backtrack3:
         inext = max(j, k) + 1
         # If it would be bigger than our bankroll, we pass. Backtrack ends.
         if inext > self.b1:
-            self.a[i][j][k] = (2 if j > k else 3, None)
+            which_wins, _ = self.g23[j][k]
+            self.a[i][j][k] = (which_wins, None)
             return
         # We must analyse only the options that are profitable for us
         while inext <= self.b1 and inext < i + self.s:
@@ -195,7 +205,7 @@ class Backtrack3:
                 self.a[i][j][k] = (1, (inext, j, k))
                 return
             inext += 1
-        # When we didn't find suitable action, we pass. Backtrack follows.
+        # When we didn't find suitable action, we make unsuitable move. Backtrack follows.
         inext = max(j, k) + 1
         which_wins, _ = self.a[inext][j][k]
         self.a[i][j][k] = (which_wins, (inext, j, k))
@@ -206,7 +216,8 @@ class Backtrack3:
         jnext = max(i, k) + 1
         # If it would be bigger than our bankroll, we pass. Backtrack ends.
         if jnext > self.b2:
-            self.a[i][j][k] = (1 if i > k else 3, None)
+            which_wins, _ = self.g13[i][k]
+            self.a[i][j][k] = (which_wins, None)
             return
         # We must analyse only the options that are profitable for us
         while jnext <= self.b2 and jnext < j + self.s:
@@ -215,7 +226,7 @@ class Backtrack3:
                 self.a[i][j][k] = (2, (i, jnext, k))
                 return
             jnext += 1
-        # When we didn't find suitable action, we pass. Backtrack follows.
+        # When we didn't find suitable action, we make unsuitable move. Backtrack follows.
         jnext = max(i, k) + 1
         which_wins, _ = self.a[i][jnext][k]
         self.a[i][j][k] = (which_wins, (i, jnext, k))
@@ -226,7 +237,8 @@ class Backtrack3:
         knext = max(i, j) + 1
         # If it would be bigger than our bankroll, we pass. Backtrack ends.
         if knext > self.b2:
-            self.a[i][j][k] = (1 if i > j else 2, None)
+            which_wins, _ = self.g12[i][j]
+            self.a[i][j][k] = (which_wins, None)
             return
         # We must analyse only the options that are profitable for us
         while knext <= self.b3 and knext < k + self.s:
@@ -235,7 +247,7 @@ class Backtrack3:
                 self.a[i][j][k] = (3, (i, j, knext))
                 return
             knext += 1
-        # When we didn't find suitable action, we pass. Backtrack follows.
+        # When we didn't find suitable action, we make unsuitable move. Backtrack follows.
         knext = max(i, j) + 1
         which_wins, _ = self.a[i][j][knext]
         self.a[i][j][k] = (which_wins, (i, j, knext))
@@ -243,7 +255,6 @@ class Backtrack3:
     def print(self):
         self.print_matrix()
         self.print_backtrack(0, 0, 0)
-        self.print_backtrack(1, 0, 0)
 
     def print_matrix(self):
         for z in range(0, self.b3 + 1):
@@ -266,7 +277,10 @@ class Backtrack3:
             i, j, k = inext, jnext, knext
 
 if __name__ == '__main__':
-    B = 9
-    backtrack = Backtrack3(b1=B, b2=B, b3=B, s=3)
+    # backtrack = Backtrack2(b1=50, b2=50, s=20)
+    # backtrack = Backtrack2(b1=45, b2=50, s=20)
+    # backtrack = Backtrack2(b1=50, b2=45, s=20)
+    backtrack = Backtrack3(b1=9, b2=9, b3=9, s=3)
+    # backtrack = Backtrack3(b1=9, b2=9, b3=9, s=4)
     a = backtrack.backtrack()
     backtrack.print()
