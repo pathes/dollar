@@ -19,24 +19,20 @@ class Backtrack2:
             [(0, None) for _ in range(self.b2 + 1)]
             for _ in range(self.b1 + 1)
         ]
-        self.initial_values()
         self.dynamic_fill()
         return self.a
-
-    def initial_values(self):
-        for j in range(0, self.b2):
-            self.a[self.b1][j] = (1, None)
-        for i in range(0, self.b1):
-            self.a[i][self.b2] = (2, None)
 
     def dynamic_fill(self):
         # Fill the matrix dynamically
         # Each iteration of loop over variable l fills L-shaped fragment
-        for l in range(0, min(self.b1, self.b2)):
-            for i in range(self.b1 - l):
-                self.step(i, self.b2 - l - 1)
-            for j in range(self.b2 - l):
-                self.step(self.b1 - l - 1, j)
+        for l in range(0, min(self.b1, self.b2) + 1):
+            # Corner case for unequal budgets
+            self.step(self.b1 - l, self.b2 - l)
+            # Normal cases
+            for i in range(self.b1 - l, -1, -1):
+                self.step(i, self.b2 - l)
+            for j in range(self.b2 - l, -1, -1):
+                self.step(self.b1 - l, j)
 
         # Special case: force player 1 to make move:
         # (0, 0) -> (x, 0) where x > 0
@@ -53,8 +49,8 @@ class Backtrack2:
         # As player 1, we must give at least 1 unit more
         # than player 2 or we pass.
         inext = j + 1
-        # If it would be bigger than our bankroll, we pass. Backtrack ends.
-        if inext > self.b1:
+        # If it would be bigger than our bankroll or it's unprofitable, we pass. Backtrack ends.
+        if not (inext <= self.b1 and inext < i + self.s):
             self.a[i][j] = (2, None)
             return
         # We must analyse only the options that are profitable for us
@@ -71,8 +67,8 @@ class Backtrack2:
         # As player 2, we must give at least 1 unit more
         # than player 1 or we pass.
         jnext = i + 1
-        # If it would be bigger than our bankroll, we pass. Backtrack ends.
-        if jnext > self.b2:
+        # If it would be bigger than our bankroll or it's unprofitable, we pass. Backtrack ends.
+        if not (jnext <= self.b2 and jnext < j + self.s):
             self.a[i][j] = (1, None)
             return
         # We must analyse only the options that are profitable for us
@@ -99,7 +95,7 @@ class Backtrack2:
 
     def print_matrix(self):
         for x in range(0, self.b1 + 1):
-            s = ''
+            s = '{}\t'.format(x)
             for y in range(0, self.b2 + 1):
                 v, _ = self.a[x][y]
                 if v == 0:
