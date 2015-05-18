@@ -136,37 +136,25 @@ class Backtrack3:
                 ] for _ in range(self.b2 + 1)
             ] for _ in range(self.b1 + 1)
         ]
-        self.initial_values()
         self.dynamic_fill()
         return self.a
-
-    def initial_values(self):
-        for j in range(0, self.b2):
-            for k in range(0, self.b3):
-                self.a[self.b1][j][k] = (1, None)
-        for i in range(0, self.b1):
-            for k in range(0, self.b3):
-                self.a[i][self.b2][k] = (2, None)
-        for i in range(0, self.b1):
-            for j in range(0, self.b2):
-                self.a[i][j][self.b3] = (3, None)
 
     def dynamic_fill(self):
         # Fill the matrix dynamically
         # Each iteration of loop over variable l fills L-shaped fragment
-        for l in range(0, min(self.b1, self.b2, self.b3)):
-            for i in range(self.b1 - l):
-                for j in range(self.b2 - l):
-                    if i != j:
-                        self.step(i, j, self.b3 - l - 1)
-            for i in range(self.b1 - l):
-                for k in range(self.b3 - l):
-                    if i != k:
-                        self.step(i, self.b2 - l - 1, k)
-            for j in range(self.b2 - l):
-                for k in range(self.b3 - l):
-                    if j != k:
-                        self.step(self.b1 - l - 1, j, k)
+        for l in range(0, min(self.b1, self.b2, self.b3) + 1):
+            # Corner case for unequal budgets
+            self.step(self.b1 - l, self.b2 - l, self.b3 - l)
+            # Normal cases
+            for i in range(self.b1 - l, -1, -1):
+                for j in range(self.b2 - l, -1, -1):
+                    self.step(i, j, self.b3 - l)
+            for i in range(self.b1 - l, -1, -1):
+                for k in range(self.b3 - l, -1, -1):
+                    self.step(i, self.b2 - l, k)
+            for j in range(self.b1 - l, -1, -1):
+                for k in range(self.b3 - l, -1, -1):
+                    self.step(self.b1 - l, j, k)
 
         # Special case: force player 2 to make move:
         # (x, 0, 0) -> (x, y, 0) where y > x > 0
@@ -189,8 +177,8 @@ class Backtrack3:
         # As player 1, we must give at least 1 unit more
         # than max bid of other players or we pass.
         inext = max(j, k) + 1
-        # If it would be bigger than our bankroll, we pass. Backtrack ends.
-        if inext > self.b1:
+        # If it would be bigger than our bankroll or it's unprofitable, we pass. Backtrack ends.
+        if not (inext <= self.b1 and inext < i + self.s):
             which_wins, _ = self.g23[j][k]
             self.a[i][j][k] = (which_wins, None)
             return
@@ -210,8 +198,8 @@ class Backtrack3:
         # As player 2, we must give at least 1 unit more
         # than max bid of other players or we pass.
         jnext = max(i, k) + 1
-        # If it would be bigger than our bankroll, we pass. Backtrack ends.
-        if jnext > self.b2:
+        # If it would be bigger than our bankroll or it's unprofitable, we pass. Backtrack ends.
+        if not (jnext <= self.b2 and jnext < j + self.s):
             which_wins, _ = self.g13[i][k]
             self.a[i][j][k] = (which_wins, None)
             return
@@ -231,8 +219,8 @@ class Backtrack3:
         # As player 3, we must give at least 1 unit more
         # than max bid of other players or we pass.
         knext = max(i, j) + 1
-        # If it would be bigger than our bankroll, we pass. Backtrack ends.
-        if knext > self.b2:
+        # If it would be bigger than our bankroll or it's unprofitable, we pass. Backtrack ends.
+        if not (knext <= self.b3 and knext < k + self.s):
             which_wins, _ = self.g12[i][j]
             self.a[i][j][k] = (which_wins, None)
             return
