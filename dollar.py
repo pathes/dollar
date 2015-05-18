@@ -31,12 +31,12 @@ class Backtrack2:
 
     def dynamic_fill(self):
         # Fill the matrix dynamically
-        # Each iteration of loop over variable k fills L-shaped fragment
-        for k in range(1, min(self.b1, self.b2) + 1):
-            for i in range(self.b1 + 1 - k):
-                self.step(i, self.b2 - k)
-            for j in range(self.b2 + 1 - k):
-                self.step(self.b1 - k, j)
+        # Each iteration of loop over variable l fills L-shaped fragment
+        for l in range(0, min(self.b1, self.b2)):
+            for i in range(self.b1 - l):
+                self.step(i, self.b2 - l - 1)
+            for j in range(self.b2 - l):
+                self.step(self.b1 - l - 1, j)
 
         # Special case: force player 1 to make move:
         # (0, 0) -> (x, 0) where x > 0
@@ -158,19 +158,19 @@ class Backtrack3:
     def dynamic_fill(self):
         # Fill the matrix dynamically
         # Each iteration of loop over variable l fills L-shaped fragment
-        for l in range(1, min(self.b1, self.b2, self.b3) + 1):
-            for i in range(self.b1 + 1 - l):
-                for j in range(self.b2 + 1 - l):
+        for l in range(0, min(self.b1, self.b2, self.b3)):
+            for i in range(self.b1 - l):
+                for j in range(self.b2 - l):
                     if i != j:
-                        self.step(i, j, self.b3 - l)
-            for i in range(self.b1 + 1 - l):
-                for k in range(self.b3 + 1 - l):
+                        self.step(i, j, self.b3 - l - 1)
+            for i in range(self.b1 - l):
+                for k in range(self.b3 - l):
                     if i != k:
-                        self.step(i, self.b2 - l, k)
-            for j in range(self.b2 + 1 - l):
-                for k in range(self.b3 + 1 - l):
+                        self.step(i, self.b2 - l - 1, k)
+            for j in range(self.b2 - l):
+                for k in range(self.b3 - l):
                     if j != k:
-                        self.step(self.b1 - l, j, k)
+                        self.step(self.b1 - l - 1, j, k)
 
         # Special case: force player 2 to make move:
         # (x, 0, 0) -> (x, y, 0) where y > x > 0
